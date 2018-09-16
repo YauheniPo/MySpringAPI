@@ -1,8 +1,8 @@
 package com.yauhenipo;
 
-import com.popospringframework.beans.factory.stereotype.Service;
+import com.popospringframework.beans.factory.stereotype.Component;
 
-@Service
+@Component
 public class PromotionsService {
-    
+
 }
