@@ -6,7 +6,9 @@ public class Main {
     public static void main(String[] args) {
         BeanFactory beanFactory = new BeanFactory();
         beanFactory.instantiate("com.yauhenipo");
-        beanFactory.populateProperties();
+
+        beanFactory.populatePropertiesByName();
+        
         ProductService productService = (ProductService) beanFactory.getBean("productService");
 
     }

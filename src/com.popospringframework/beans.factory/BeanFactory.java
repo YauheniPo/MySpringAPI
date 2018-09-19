@@ -10,10 +10,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 public class BeanFactory {
     private Map<String, Object> singletons = new HashMap<>();
@@ -79,7 +76,22 @@ public class BeanFactory {
                     }
                 }
             }
-
         }
+    }
+
+    public void populatePropertiesByName() {
+        singletons.values().parallelStream().forEach(obj -> Arrays.stream(obj.getClass().getDeclaredFields()).parallel()
+                .filter(field -> field.isAnnotationPresent(Autowired.class) && singletons.containsKey(field.getName()))
+                .forEach(field -> {
+                    Object dependency = singletons.get(field.getName());
+                    String setterName = "set" + field.getName().substring(0, 1).toUpperCase() + field.getName().substring(1);
+                    try {
+                        Method setter = obj.getClass().getMethod(setterName, dependency.getClass());
+                        setter.invoke(obj, dependency);
+                    } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+                        e.printStackTrace();
+                    }
+                })
+        );
     }
 }
