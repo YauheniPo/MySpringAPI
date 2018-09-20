@@ -8,7 +8,7 @@ public class Main {
         beanFactory.instantiate("com.yauhenipo");
 
         beanFactory.populatePropertiesByName();
-        
+        beanFactory.injectBeanNames();
         ProductService productService = (ProductService) beanFactory.getBean("productService");
 
     }

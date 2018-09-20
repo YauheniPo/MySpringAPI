@@ -2,6 +2,7 @@ package com.popospringframework.beans.factory;
 
 import com.popospringframework.beans.factory.annotation.Autowired;
 import com.popospringframework.beans.factory.stereotype.Component;
+import epam.popovich.annotation.log.Log;
 
 import java.io.File;
 import java.io.IOException;
@@ -59,6 +60,7 @@ public class BeanFactory {
         }
     }
 
+    @Log
     public void populateProperties() {
         for (Object object : singletons.values()) {
             for (Field field : object.getClass().getDeclaredFields()) {
@@ -79,6 +81,7 @@ public class BeanFactory {
         }
     }
 
+    @Log
     public void populatePropertiesByName() {
         singletons.values().parallelStream().forEach(obj -> Arrays.stream(obj.getClass().getDeclaredFields()).parallel()
                 .filter(field -> field.isAnnotationPresent(Autowired.class) && singletons.containsKey(field.getName()))
@@ -93,5 +96,9 @@ public class BeanFactory {
                     }
                 })
         );
+    }
+
+    public void injectBeanNames() {
+        singletons.entrySet().stream().filter(bean -> bean.getValue() instanceof BeanNameAware).forEach(bean -> ((BeanNameAware) bean.getValue()).setBeanName(bean.getKey()));
     }
 }
