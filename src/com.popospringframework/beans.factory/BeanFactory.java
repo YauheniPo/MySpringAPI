@@ -1,6 +1,7 @@
 package com.popospringframework.beans.factory;
 
 import com.popospringframework.beans.factory.annotation.Autowired;
+import com.popospringframework.beans.factory.config.BeanPostProcessor;
 import com.popospringframework.beans.factory.stereotype.Component;
 import epam.popovich.annotation.log.Log;
 
@@ -15,6 +16,11 @@ import java.util.*;
 
 public class BeanFactory {
     private Map<String, Object> singletons = new HashMap<>();
+    private List<BeanPostProcessor> postProcessors = new ArrayList<>();
+
+    public void addPostProcessor(BeanPostProcessor postProcessor) {
+        this.postProcessors.add(postProcessor);
+    }
 
     public Object getBean(String beanName) {
         return singletons.get(beanName);
@@ -83,7 +89,7 @@ public class BeanFactory {
 
     @Log
     public void populatePropertiesByName() {
-        singletons.values().parallelStream().forEach(obj -> Arrays.stream(obj.getClass().getDeclaredFields()).parallel()
+        singletons.values().forEach(obj -> Arrays.stream(obj.getClass().getDeclaredFields()).parallel()
                 .filter(field -> field.isAnnotationPresent(Autowired.class) && singletons.containsKey(field.getName()))
                 .forEach(field -> {
                     Object dependency = singletons.get(field.getName());
@@ -107,6 +113,12 @@ public class BeanFactory {
     }
 
     public void initializeBeans() {
-        singletons.values().stream().filter(bean -> bean instanceof InitializingBean).forEach(bean -> ((InitializingBean) bean).afterPropertiesSet());
+        singletons.forEach((name, bean) -> {
+            postProcessors.forEach(processor -> processor.postProcessBeforeInitialization(bean, name));
+            if (bean instanceof InitializingBean) {
+                ((InitializingBean) bean).afterPropertiesSet();
+            }
+            postProcessors.forEach(processor -> processor.postProcessAfterInitialization(bean, name));
+        });
     }
 }

@@ -7,10 +7,11 @@ public class Main {
         BeanFactory beanFactory = new BeanFactory();
         beanFactory.instantiate("com.yauhenipo");
 
+        beanFactory.addPostProcessor(new CustomPostProcessor());
+        beanFactory.initializeBeans();
         beanFactory.populatePropertiesByName();
         beanFactory.injectBeanNames();
         beanFactory.injectBeanFactory();
-        beanFactory.initializeBeans();
         ProductService productService = (ProductService) beanFactory.getBean("productService");
 
     }
