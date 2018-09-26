@@ -101,4 +101,12 @@ public class BeanFactory {
     public void injectBeanNames() {
         singletons.entrySet().stream().filter(bean -> bean.getValue() instanceof BeanNameAware).forEach(bean -> ((BeanNameAware) bean.getValue()).setBeanName(bean.getKey()));
     }
+
+    public void injectBeanFactory() {
+        singletons.values().stream().filter(bean -> bean instanceof BeanFactoryAware).forEach(bean -> ((BeanFactoryAware) bean).setBeanFactory(new BeanFactory()));
+    }
+
+    public void initializeBeans() {
+        singletons.values().stream().filter(bean -> bean instanceof InitializingBean).forEach(bean -> ((InitializingBean) bean).afterPropertiesSet());
+    }
 }
