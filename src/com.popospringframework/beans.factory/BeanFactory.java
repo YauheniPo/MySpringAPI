@@ -3,8 +3,10 @@ package com.popospringframework.beans.factory;
 import com.popospringframework.beans.factory.annotation.Autowired;
 import com.popospringframework.beans.factory.config.BeanPostProcessor;
 import com.popospringframework.beans.factory.stereotype.Component;
+import com.popospringframework.beans.factory.stereotype.Service;
 import epam.popovich.annotation.log.Log;
 
+import javax.annotation.PreDestroy;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -17,6 +19,10 @@ import java.util.*;
 public class BeanFactory {
     private Map<String, Object> singletons = new HashMap<>();
     private List<BeanPostProcessor> postProcessors = new ArrayList<>();
+
+    public Map<String, Object> getSingletons() {
+        return singletons;
+    }
 
     public void addPostProcessor(BeanPostProcessor postProcessor) {
         this.postProcessors.add(postProcessor);
@@ -56,7 +62,7 @@ public class BeanFactory {
 
                 Class classObject = Class.forName(basePackage + "." + className);
 
-                if (classObject.isAnnotationPresent(Component.class)) {
+                if (classObject.isAnnotationPresent(Component.class) || classObject.isAnnotationPresent(Service.class)) {
                     Object instance = classObject.newInstance();
 
                     String beanName = className.substring(0, 1).toLowerCase() + className.substring(1);
@@ -105,11 +111,13 @@ public class BeanFactory {
     }
 
     public void injectBeanNames() {
-        singletons.entrySet().stream().filter(bean -> bean.getValue() instanceof BeanNameAware).forEach(bean -> ((BeanNameAware) bean.getValue()).setBeanName(bean.getKey()));
+        singletons.entrySet().stream().filter(bean -> bean.getValue() instanceof BeanNameAware)
+                .forEach(bean -> ((BeanNameAware) bean.getValue()).setBeanName(bean.getKey()));
     }
 
     public void injectBeanFactory() {
-        singletons.values().stream().filter(bean -> bean instanceof BeanFactoryAware).forEach(bean -> ((BeanFactoryAware) bean).setBeanFactory(new BeanFactory()));
+        singletons.values().stream().filter(bean -> bean instanceof BeanFactoryAware)
+                .forEach(bean -> ((BeanFactoryAware) bean).setBeanFactory(new BeanFactory()));
     }
 
     public void initializeBeans() {
@@ -119,6 +127,22 @@ public class BeanFactory {
                 ((InitializingBean) bean).afterPropertiesSet();
             }
             postProcessors.forEach(processor -> processor.postProcessAfterInitialization(bean, name));
+        });
+    }
+
+    public void close() {
+        singletons.values().forEach(bean -> {
+            Arrays.stream(bean.getClass().getMethods()).filter(method -> method.isAnnotationPresent(PreDestroy.class))
+                    .forEach(method -> {
+                        try {
+                            method.invoke(bean);
+                        } catch (IllegalAccessException | InvocationTargetException e) {
+                            e.printStackTrace();
+                        }
+                    });
+            if (bean instanceof DisposableBean) {
+                ((DisposableBean) bean).destroy();
+            }
         });
     }
 }

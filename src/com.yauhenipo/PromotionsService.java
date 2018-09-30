@@ -3,9 +3,9 @@ package com.yauhenipo;
 import com.popospringframework.beans.factory.BeanFactory;
 import com.popospringframework.beans.factory.BeanFactoryAware;
 import com.popospringframework.beans.factory.BeanNameAware;
-import com.popospringframework.beans.factory.stereotype.Component;
+import com.popospringframework.beans.factory.stereotype.Service;
 
-@Component
+@Service
 public class PromotionsService implements BeanNameAware, BeanFactoryAware {
     private String beanName;
     private BeanFactory beanFactory;
@@ -22,5 +22,9 @@ public class PromotionsService implements BeanNameAware, BeanFactoryAware {
 
     public String getBeanName() {
         return this.beanName;
+    }
+
+    public BeanFactory getBeanFactory() {
+        return beanFactory;
     }
 }
