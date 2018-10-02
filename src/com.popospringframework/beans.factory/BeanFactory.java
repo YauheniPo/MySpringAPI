@@ -4,9 +4,7 @@ import com.popospringframework.beans.factory.annotation.Autowired;
 import com.popospringframework.beans.factory.config.BeanPostProcessor;
 import com.popospringframework.beans.factory.stereotype.Component;
 import com.popospringframework.beans.factory.stereotype.Service;
-import epam.popovich.annotation.log.Log;
 
-import javax.annotation.PreDestroy;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -15,6 +13,7 @@ import java.lang.reflect.Method;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.*;
+import javax.annotation.PreDestroy;
 
 public class BeanFactory {
     private Map<String, Object> singletons = new HashMap<>();
@@ -72,7 +71,6 @@ public class BeanFactory {
         }
     }
 
-    @Log
     public void populateProperties() {
         for (Object object : singletons.values()) {
             for (Field field : object.getClass().getDeclaredFields()) {
@@ -93,7 +91,6 @@ public class BeanFactory {
         }
     }
 
-    @Log
     public void populatePropertiesByName() {
         singletons.values().forEach(obj -> Arrays.stream(obj.getClass().getDeclaredFields()).parallel()
                 .filter(field -> field.isAnnotationPresent(Autowired.class) && singletons.containsKey(field.getName()))
